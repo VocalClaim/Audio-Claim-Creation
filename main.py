@@ -1,11 +1,11 @@
 import streamlit as st
+import os
+import json
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from voice_recognition.recognize_voice import start_recording, stop_recording, transcribe_audio, transcribe_uploaded_audio
 from guidewire_integration import send_to_guidewire
 from data_transformer import transform_data
 from logging_config import setup_logging, log_action, log_error
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-import os
-import json
 from payload_formatting import format_payload, validate_payload
 from payload_parser import parse_text_to_payload
 
@@ -20,9 +20,7 @@ os.makedirs(EXTRACTED_TEXTS_DIR, exist_ok=True)
 model = AutoModelForSeq2SeqLM.from_pretrained("./llm_model")
 tokenizer = AutoTokenizer.from_pretrained("./llm_model")
 
-# Define the function to generate payload using the trained model
 # Function to generate payload using the trained model
-
 def generate_payload(transcribed_text):
     try:
         # Tokenize the input text
@@ -40,14 +38,12 @@ def generate_payload(transcribed_text):
         decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         # Debugging: Print the raw output and decoded output
-        print("Raw model output:", outputs)
-        print("Decoded output:", decoded_output)
+        log_action("Raw model output: " + str(outputs))
+        log_action("Decoded output: " + decoded_output)
 
-        # Process the decoded output into payload
+        # Process the decoded output into a payload
         processed_output = parse_text_to_payload(decoded_output)
-
-        # Optional: Print processed output for debugging
-        print("Processed output:", processed_output)
+        log_action("Processed output: " + str(processed_output))
 
         return processed_output
 
@@ -60,68 +56,84 @@ def generate_payload(transcribed_text):
 def check_missing_fields(payload):
     required_fields = [
         "GraphID", "NotifiedOnBehalfOf", "PolicyNumber", "LossDate", "InsuredVRN",
-        "ReportersCompanyName", "ReportersFirstName", "ReportersLastName", 
-        "ReportersAddress", "ReportersWorkPhoneNumber", "ReportersHomePhoneNumber", 
+        "ReportersCompanyName", "ReportersFirstName", "ReportersLastName",
+        "ReportersAddress", "ReportersWorkPhoneNumber", "ReportersHomePhoneNumber",
         "ReportersMobilePhoneNumber", "ReportersEmail", "ReportersReference",
-        "InsuredContactDetails", "NoticeDate", "ClaimInformation", "VehicleDetails", 
-        "DriverDetails", "ThirdPartyVehicleDetails", "ThirdPartyDriverDetails", 
+        "InsuredContactDetails", "NoticeDate", "ClaimInformation", "VehicleDetails",
+        "DriverDetails", "ThirdPartyVehicleDetails", "ThirdPartyDriverDetails",
         "ThirdPartyPropertyDetails", "EmergencyServiceDetails"
     ]
-    
+
     missing_fields = [field for field in required_fields if field not in payload]
-    
     return missing_fields
 
 # Function to handle transcription and payload generation
-def handle_transcription(transcribed_text):
-    if transcribed_text:
-        json_payload = format_payload(transcribed_text)
-        if not validate_payload(json_payload):
-            st.error("Generated payload is invalid.")
-            return
+def handle_transcription(payload):
+    try:
+        if payload:
+            if validate_payload(payload):
+                send_to_guidewire(payload)
+                log_action("Payload sent to Guidewire successfully.")
+                st.success("Claim submitted successfully.")
+            else:
+                st.error("Generated payload is invalid.")
+                log_error("Payload validation failed.")
+        else:
+            st.error("No transcribed text available for generating payload.")
+            log_error("Empty transcribed text for payload generation.")
 
-        send_to_guidewire(json_payload)
-    else:
-        st.error("No transcribed text available for generating payload.")
+    except Exception as e:
+        log_error(f"Error in transcription handling: {str(e)}")
+        st.error(f"Error in transcription handling: {str(e)}")
 
 # Function to handle audio processing
 def handle_audio_processing(transcribed_text, source):
-    if transcribed_text:
-        st.subheader(f"Transcribed Text from {source}:")
-        st.write(transcribed_text)
+    try:
+        if transcribed_text:
+            log_action(f"Audio transcribed successfully from {source}")
+            st.subheader(f"Transcribed Text from {source}:")
+            transcribed_text = st.text_area("Review/Correct Transcribed Text:", transcribed_text)
 
-        transcribed_text = st.text_area("Review/Correct Transcribed Text:", transcribed_text)
+            suggested_payload = generate_payload(transcribed_text)
+            if suggested_payload is None:
+                st.error("Failed to generate payload.")
+                log_error("Payload generation failed.")
+                return
 
-        suggested_payload = generate_payload(transcribed_text)
-        if suggested_payload is None:
-            st.error("Failed to generate payload.")
-            return
+            st.subheader("LLM Suggested Payload")
+            st.json(suggested_payload)
 
-        # Convert the payload to a JSON string if it's a dictionary
-        if isinstance(suggested_payload, dict):
-            suggested_payload_str = json.dumps(suggested_payload, indent=4)
+            missing_fields = check_missing_fields(suggested_payload)
+            if missing_fields:
+                st.warning("The following fields are missing:")
+                st.write(missing_fields)
+                log_action(f"Missing fields detected: {missing_fields}")
+
+            if not missing_fields:
+                if st.button("Confirm and Send to Guidewire"):
+                    transformed_payload = transform_data(suggested_payload)
+                    handle_transcription(transformed_payload)
+                    log_action("Payload confirmed and sent to Guidewire.")
         else:
-            suggested_payload_str = suggested_payload
+            st.error(f"Failed to transcribe the {source}.")
+            log_error(f"Transcription failed for {source}.")
+    
+    except Exception as e:
+        log_error(f"Error in audio processing: {str(e)}")
+        st.error(f"Error in audio processing: {str(e)}")
 
-        st.subheader("LLM Suggested Payload")
-        st.json(suggested_payload_str)
+# Main Streamlit Application
+st.title("Claim Creation through Voice Recognition")
 
-        missing_fields = check_missing_fields(suggested_payload)
-        if missing_fields:
-            st.warning("The following fields are missing:")
-            st.write(missing_fields)
-        else:
-            if st.button("Review and Confirm Payload"):
-                try:
-                    st.json(suggested_payload_str)
-                    if st.button("Confirm and Send to Guidewire"):
-                        transformed_payload = transform_data(suggested_payload)
-                        handle_transcription(transformed_payload)
-                except Exception as e:
-                    st.error(f"Error in processing payload: {str(e)}")
-                    log_error(f"Payload processing failed: {str(e)}")
-    else:
-        st.error(f"Failed to transcribe the {source}.")
+# Audio recording section
+st.header("Record Voice")
+if st.button("Start Recording"):
+    start_recording()
+    log_action("Started recording.")
+if st.button("Stop Recording"):
+    stop_recording()
+    transcribed_text = transcribe_audio()
+    handle_audio_processing(transcribed_text, "Recorded Audio")
 
 # Upload Audio for Transcription
 st.subheader("Upload Audio File")
@@ -129,3 +141,11 @@ uploaded_file = st.file_uploader("Choose an audio file", type=["wav", "mp3"])
 if uploaded_file is not None:
     transcribed_text = transcribe_uploaded_audio(uploaded_file)
     handle_audio_processing(transcribed_text, "Uploaded File")
+
+# Optional: Display system logs for debugging
+with st.expander("System Logs"):
+    try:
+        with open("system.log") as log_file:
+            st.text(log_file.read())
+    except FileNotFoundError:
+        st.warning("Log file not found.")
