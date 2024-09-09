@@ -1,0 +1,263 @@
+
+[
+  {
+    "input": "A car accident occurred at Main Street. The insured's car has front bumper damage. The other vehicle involved is a red sedan, and there were no injuries.",
+    "target": {
+      "GraphID": "12345",
+      "NotifiedOnBehalfOf": "Company XYZ",
+      "PolicyNumber": "P123456789",
+      "LossDate": "2024-05-10T08:00:00Z",
+      "InsuredVRN": "VRN123",
+      "ReportersCompanyName": "Reporter Company",
+      "ReportersFirstName": "John",
+      "ReportersLastName": "Doe",
+      "ReportersAddress": "123 Main Street",
+      "ReportersWorkPhoneNumber": "123-456-7890",
+      "ReportersHomePhoneNumber": "987-654-3210",
+      "ReportersMobilePhoneNumber": "789-456-1230",
+      "ReportersEmail": "john.doe@example.com",
+      "ReportersReference": "Ref123",
+      "InsuredContactDetails": {
+        "InsuredName": "Insured Name",
+        "InsuredAddress": "456 Elm Street",
+        "InsuredEmail": "insured@example.com",
+        "InsuredWorkPhoneNumber": "456-789-0123",
+        "InsuredHomePhoneNumber": "321-654-0987",
+        "InsuredMobilePhoneNumber": "987-654-3210",
+        "VATStatus": "VAT Registered"
+      },
+      "NoticeDate": "2024-05-10T08:30:00Z",
+      "ClaimInformation": {
+        "WhatHappened": "Accident occurred at Main Street involving another vehicle (red sedan). No injuries reported.",
+        "IncidentOnly": false,
+        "Liability": "Other party at fault",
+        "LossLocation": "Main Street",
+        "ThirdPartyInvolved": true,
+        "ThirdPartyDetails": {
+          "ThirdPartyName": "Sarah Johnson",
+          "ThirdPartyAddress": "789 Cedar Avenue",
+          "ThirdPartyPhoneNumber": "555-123-4567",
+          "ThirdPartyVehicle": {
+            "Make": "Toyota",
+            "Model": "Camry",
+            "Year": "2018",
+            "Color": "Red",
+            "LicensePlate": "XYZ987"
+          }
+        }
+      },
+      "VehicleDetails": {
+        "ClaimPersonalEffects": "No",
+        "IsVehicleDamaged": "Yes",
+        "IsVehicleOperable": "Yes",
+        "DamageDescription": "Front bumper damage",
+        "ClaimVehicleDamage": "Yes",
+        "RepairEstimate": "$2,000",
+        "VehicleLocation": "At insured's residence"
+      }
+    }
+  },
+  {
+    "input": "The insured's house was flooded due to heavy rain, damaging the living room and basement. Furniture and electronics were destroyed.",
+    "target": {
+      "GraphID": "67890",
+      "NotifiedOnBehalfOf": "Homeowners Inc.",
+      "PolicyNumber": "H987654321",
+      "LossDate": "2024-06-15T14:30:00Z",
+      "InsuredVRN": null,
+      "ReportersCompanyName": "Flood Services Ltd.",
+      "ReportersFirstName": "Alice",
+      "ReportersLastName": "Smith",
+      "ReportersAddress": "789 Oak Avenue",
+      "ReportersWorkPhoneNumber": "111-222-3333",
+      "ReportersHomePhoneNumber": "444-555-6666",
+      "ReportersMobilePhoneNumber": "999-888-7777",
+      "ReportersEmail": "alice.smith@example.com",
+      "ReportersReference": "Ref456",
+      "InsuredContactDetails": {
+        "InsuredName": "Peter Parker",
+        "InsuredAddress": "321 Maple Street",
+        "InsuredEmail": "peter.parker@example.com",
+        "InsuredWorkPhoneNumber": "222-333-4444",
+        "InsuredHomePhoneNumber": "555-666-7777",
+        "InsuredMobilePhoneNumber": "888-777-6666",
+        "VATStatus": "Not Registered"
+      },
+      "NoticeDate": "2024-06-15T15:00:00Z",
+      "ClaimInformation": {
+        "WhatHappened": "House flooded due to heavy rain, damaging living room and basement.",
+        "IncidentOnly": false,
+        "Liability": "Weather event",
+        "LossLocation": "Living room and basement",
+        "EstimatedRepairCost": "$15,000",
+        "PropertyDamageType": "Flood damage",
+        "ThirdPartyInvolved": false
+      },
+      "PropertyDetails": {
+        "ClaimPropertyDamage": "Yes",
+        "PropertyDamageDescription": "Living room and basement flooded. Furniture and electronics destroyed.",
+        "IsPropertyLivable": "No",
+        "PropertyRepairsRequired": "Yes",
+        "EstimatedRepairTime": "3 months",
+        "TemporaryHousingRequired": "Yes"
+      }
+    }
+  },
+  {
+    "input": "The insured's vehicle was rear-ended at an intersection. The rear bumper is damaged. There were minor injuries to the driver.",
+    "target": {
+      "GraphID": "34567",
+      "NotifiedOnBehalfOf": "CarInsure Ltd.",
+      "PolicyNumber": "C123987654",
+      "LossDate": "2024-07-02T09:15:00Z",
+      "InsuredVRN": "VRN789",
+      "ReportersCompanyName": "Accident Reporting Inc.",
+      "ReportersFirstName": "Michael",
+      "ReportersLastName": "Brown",
+      "ReportersAddress": "123 Pine Street",
+      "ReportersWorkPhoneNumber": "123-555-7890",
+      "ReportersHomePhoneNumber": "987-111-3210",
+      "ReportersMobilePhoneNumber": "789-333-1230",
+      "ReportersEmail": "michael.brown@example.com",
+      "ReportersReference": "Ref789",
+      "InsuredContactDetails": {
+        "InsuredName": "Jane Doe",
+        "InsuredAddress": "789 Birch Street",
+        "InsuredEmail": "jane.doe@example.com",
+        "InsuredWorkPhoneNumber": "444-789-0123",
+        "InsuredHomePhoneNumber": "321-654-4444",
+        "InsuredMobilePhoneNumber": "987-333-7890",
+        "VATStatus": "VAT Registered"
+      },
+      "NoticeDate": "2024-07-02T09:45:00Z",
+      "ClaimInformation": {
+        "WhatHappened": "Rear-ended at intersection. Minor injuries to the driver.",
+        "IncidentOnly": false,
+        "Liability": "Other driver at fault",
+        "LossLocation": "Intersection",
+        "ThirdPartyInvolved": true,
+        "InjuriesReported": true,
+        "InjuredParties": [
+          {
+            "InjuredName": "Jane Doe",
+            "InjuryDescription": "Minor whiplash"
+          }
+        ]
+      },
+      "VehicleDetails": {
+        "ClaimPersonalEffects": "No",
+        "IsVehicleDamaged": "Yes",
+        "IsVehicleOperable": "Yes",
+        "DamageDescription": "Rear bumper damage",
+        "ClaimVehicleDamage": "Yes",
+        "RepairEstimate": "$1,500",
+        "VehicleLocation": "In repair shop"
+      },
+      "MedicalDetails": {
+        "ClaimMedicalExpenses": "Yes",
+        "MedicalTreatmentRequired": "Yes",
+        "InjurySeverity": "Minor"
+      }
+    }
+  },
+  {
+    "input": "The insured's business experienced a fire, damaging the warehouse and inventory. The fire started in the electrical room.",
+    "target": {
+      "GraphID": "45678",
+      "NotifiedOnBehalfOf": "BizSecure Insurance",
+      "PolicyNumber": "B987123456",
+      "LossDate": "2024-08-20T11:30:00Z",
+      "InsuredVRN": null,
+      "ReportersCompanyName": "Fire Investigators Inc.",
+      "ReportersFirstName": "Sara",
+      "ReportersLastName": "Johnson",
+      "ReportersAddress": "456 Cedar Drive",
+      "ReportersWorkPhoneNumber": "111-555-1234",
+      "ReportersHomePhoneNumber": "444-222-3333",
+      "ReportersMobilePhoneNumber": "777-888-9999",
+      "ReportersEmail": "sara.johnson@example.com",
+      "ReportersReference": "Ref987",
+      "InsuredContactDetails": {
+        "InsuredName": "ACME Corp.",
+        "InsuredAddress": "789 Industrial Way",
+        "InsuredEmail": "contact@acmecorp.com",
+        "InsuredWorkPhoneNumber": "333-666-1234",
+        "InsuredHomePhoneNumber": null,
+        "InsuredMobilePhoneNumber": "666-777-8888",
+        "VATStatus": "VAT Registered"
+      },
+      "NoticeDate": "2024-08-20T12:00:00Z",
+      "ClaimInformation": {
+        "WhatHappened": "Fire in the electrical room caused damage to the warehouse and inventory.",
+        "IncidentOnly": false,
+        "Liability": "No liability; accidental fire",
+        "LossLocation": "Warehouse",
+        "EstimatedRepairCost": "$100,000",
+        "PropertyDamageType": "Fire damage",
+        "ThirdPartyInvolved": false
+      },
+      "PropertyDetails": {
+        "ClaimPropertyDamage": "Yes",
+        "PropertyDamageDescription": "Fire damage to warehouse and inventory.",
+        "IsPropertyLivable": "N/A",
+        "PropertyRepairsRequired": "Yes",
+        "EstimatedRepairTime": "6 months",
+        "TemporaryOperationsRequired": "Yes"
+      }
+    }
+  },
+  {
+    "input": "John Deere from reporter company call to report an accident involving a vehicle insurance under policy number p 1 2 3 4 5 6 7 8 9 the incident occurred on maintenance 2024 at 8:00 a.m. at the intersection of Main Street and downstream 123 is registered to ensure name who resides at 4:56 and provided his contact details including his work phone number 1 2 3 4 5 6 7 8 9 0 home phone number 987654 3210 mobile phone number 789456 1230 and email.com at the time of the accident accident of the UK is sustained injuries in the accident accident number 67898 the third party system damage and the third party is considered for.",
+    "target": {
+      "GraphID": "34567",
+      "NotifiedOnBehalfOf": "AutoProtect Insurance",
+      "PolicyNumber": "P123456789",
+      "LossDate": "2024-09-01T08:00:00Z",
+      "InsuredVRN": "VRN456",
+      "ReportersCompanyName": "Reporter Company",
+      "ReportersFirstName": "John",
+      "ReportersLastName": "Deere",
+      "ReportersAddress": "Unknown",
+      "ReportersWorkPhoneNumber": "123-456-7890",
+      "ReportersHomePhoneNumber": "987-654-3210",
+      "ReportersMobilePhoneNumber": "789-456-1230",
+      "ReportersEmail": "email@example.com",
+      "ReportersReference": "Ref123",
+      "InsuredContactDetails": {
+        "InsuredName": "Unknown",
+        "InsuredAddress": "456 Elm Street",
+        "InsuredEmail": "email@example.com",
+        "InsuredWorkPhoneNumber": "123-456-7890",
+        "InsuredHomePhoneNumber": "987-654-3210",
+        "InsuredMobilePhoneNumber": "789-456-1230",
+        "VATStatus": "Unknown"
+      },
+      "NoticeDate": "2024-09-01T08:30:00Z",
+      "ClaimInformation": {
+        "WhatHappened": "Vehicle accident involving third-party damage",
+        "IncidentOnly": false,
+        "Liability": "Third party at fault",
+        "LossLocation": "Intersection of Main Street and Downstream"
+      },
+      "VehicleDetails": {
+        "ClaimPersonalEffects": "No",
+        "IsVehicleDamaged": "Yes",
+        "IsVehicleOperable": "Unknown",
+        "DamageDescription": "Vehicle involved in an accident",
+        "ClaimVehicleDamage": "Yes"
+      }
+    }
+
+  }
+]
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+ 
