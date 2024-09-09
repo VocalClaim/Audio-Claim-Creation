@@ -7,41 +7,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import os
 import json
 from payload_formatting import format_payload, validate_payload
-
-# Step 1: Load the trained model and tokenizer
-model = AutoModelForSeq2SeqLM.from_pretrained("./llm_model")
-tokenizer = AutoTokenizer.from_pretrained("./llm_model")
-
-# Step 2: Function to generate payload using the trained model
-def generate_payload(transcribed_text):
-    try:
-        # Tokenize the input text
-        inputs = tokenizer.encode(transcribed_text, return_tensors="pt")
-        
-        # Generate output using the model
-        outputs = model.generate(
-            inputs,
-            max_length=512,  # Adjust max_length if needed
-            num_beams=4,     # Adjust num_beams if needed
-            early_stopping=True
-        )
-        
-        # Decode the output
-        decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        
-        # Debugging: Print the raw output and decoded output
-        print("Raw model output:", outputs)
-        print("Decoded output:", decoded_output)
-        
-        # Post-processing to improve readability if necessary
-        processed_output = decoded_output.strip()
-        
-        return processed_output
-    
-    except Exception as e:
-        st.error(f"Error generating payload: {str(e)}")
-        log_error(f"Payload generation failed: {str(e)}")
-        return None
+from payload_parser import parse_text_to_payload
 
 # Setup logging configuration
 setup_logging()
@@ -50,7 +16,63 @@ setup_logging()
 EXTRACTED_TEXTS_DIR = os.path.join('claim_form_automation', 'extracted_texts')
 os.makedirs(EXTRACTED_TEXTS_DIR, exist_ok=True)
 
-# Function to handle audio processing and payload generation
+# Load the trained model and tokenizer
+model = AutoModelForSeq2SeqLM.from_pretrained("./llm_model")
+tokenizer = AutoTokenizer.from_pretrained("./llm_model")
+
+# Define the function to generate payload using the trained model
+# Function to generate payload using the trained model
+
+def generate_payload(transcribed_text):
+    try:
+        # Tokenize the input text
+        inputs = tokenizer.encode(transcribed_text, return_tensors="pt")
+
+        # Generate output using the model
+        outputs = model.generate(
+            inputs,
+            max_length=512,  # Adjust max_length if needed
+            num_beams=4,     # Adjust num_beams if needed
+            early_stopping=True
+        )
+
+        # Decode the output
+        decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        # Debugging: Print the raw output and decoded output
+        print("Raw model output:", outputs)
+        print("Decoded output:", decoded_output)
+
+        # Process the decoded output into payload
+        processed_output = parse_text_to_payload(decoded_output)
+
+        # Optional: Print processed output for debugging
+        print("Processed output:", processed_output)
+
+        return processed_output
+
+    except Exception as e:
+        st.error(f"Error generating payload: {str(e)}")
+        log_error(f"Payload generation failed: {str(e)}")
+        return None
+
+# Define the function to check missing fields in the payload
+def check_missing_fields(payload):
+    required_fields = [
+        "GraphID", "NotifiedOnBehalfOf", "PolicyNumber", "LossDate", "InsuredVRN",
+        "ReportersCompanyName", "ReportersFirstName", "ReportersLastName", 
+        "ReportersAddress", "ReportersWorkPhoneNumber", "ReportersHomePhoneNumber", 
+        "ReportersMobilePhoneNumber", "ReportersEmail", "ReportersReference",
+        "InsuredContactDetails", "NoticeDate", "ClaimInformation", "VehicleDetails", 
+        "DriverDetails", "ThirdPartyVehicleDetails", "ThirdPartyDriverDetails", 
+        "ThirdPartyPropertyDetails", "EmergencyServiceDetails"
+    ]
+    
+    missing_fields = [field for field in required_fields if field not in payload]
+    
+    return missing_fields
+
+# Function to handle transcription and payload generation
 def handle_transcription(transcribed_text):
     if transcribed_text:
         json_payload = format_payload(transcribed_text)
@@ -62,6 +84,7 @@ def handle_transcription(transcribed_text):
     else:
         st.error("No transcribed text available for generating payload.")
 
+# Function to handle audio processing
 def handle_audio_processing(transcribed_text, source):
     if transcribed_text:
         st.subheader(f"Transcribed Text from {source}:")
@@ -74,8 +97,14 @@ def handle_audio_processing(transcribed_text, source):
             st.error("Failed to generate payload.")
             return
 
+        # Convert the payload to a JSON string if it's a dictionary
+        if isinstance(suggested_payload, dict):
+            suggested_payload_str = json.dumps(suggested_payload, indent=4)
+        else:
+            suggested_payload_str = suggested_payload
+
         st.subheader("LLM Suggested Payload")
-        st.write(suggested_payload)
+        st.json(suggested_payload_str)
 
         missing_fields = check_missing_fields(suggested_payload)
         if missing_fields:
@@ -84,7 +113,7 @@ def handle_audio_processing(transcribed_text, source):
         else:
             if st.button("Review and Confirm Payload"):
                 try:
-                    st.json(suggested_payload)
+                    st.json(suggested_payload_str)
                     if st.button("Confirm and Send to Guidewire"):
                         transformed_payload = transform_data(suggested_payload)
                         handle_transcription(transformed_payload)
@@ -94,24 +123,7 @@ def handle_audio_processing(transcribed_text, source):
     else:
         st.error(f"Failed to transcribe the {source}.")
 
-# Step 4: Start/Stop Recording Logic
-if st.button("Start Recording"):
-    try:
-        log_action("Recording started")
-        start_recording()
-    except Exception as e:
-        log_error(f"Recording failed: {str(e)}")
-        st.error("Recording failed. Please try again.")
-
-if st.button("Stop Recording"):
-    audio_filename = stop_recording()
-    if audio_filename:
-        transcribed_text = transcribe_audio(audio_filename)
-        handle_audio_processing(transcribed_text, "Recording")
-    else:
-        st.error("Recording was not successful.")
-
-# Step 5: Upload Audio for Transcription
+# Upload Audio for Transcription
 st.subheader("Upload Audio File")
 uploaded_file = st.file_uploader("Choose an audio file", type=["wav", "mp3"])
 if uploaded_file is not None:
