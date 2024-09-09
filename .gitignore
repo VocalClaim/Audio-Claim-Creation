@@ -1,2 +1,8 @@
 # Ignore the virtual environment directory
 venv/
+
+# Ignore specific large files if needed
+llm_model/model.safetensors
+venv/Lib/site-packages/torch/lib/torch_cpu.dll
+venv/Lib/site-packages/tensorflow/python/_pywrap_tensorflow_internal.pyd
+venv/Lib/site-packages/torch/lib/dnnl.lib
