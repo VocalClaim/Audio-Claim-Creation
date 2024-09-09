@@ -23,6 +23,9 @@ tokenizer = AutoTokenizer.from_pretrained("./llm_model")
 # Function to generate payload using the trained model
 def generate_payload(transcribed_text):
     try:
+        if not transcribed_text.strip():
+            raise ValueError("Transcribed text is empty or contains only whitespace.")
+
         # Tokenize the input text
         inputs = tokenizer.encode(transcribed_text, return_tensors="pt")
 
@@ -37,7 +40,7 @@ def generate_payload(transcribed_text):
         # Decode the output
         decoded_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # Debugging: Print the raw output and decoded output
+        # Debugging: Log the raw output and decoded output
         log_action("Raw model output: " + str(outputs))
         log_action("Decoded output: " + decoded_output)
 
@@ -115,8 +118,8 @@ def handle_audio_processing(transcribed_text, source):
                     handle_transcription(transformed_payload)
                     log_action("Payload confirmed and sent to Guidewire.")
         else:
-            st.error(f"Failed to transcribe the {source}.")
-            log_error(f"Transcription failed for {source}.")
+            st.error(f"Failed to transcribe the {source}. No text returned.")
+            log_error(f"Transcription failed for {source}. No text returned.")
     
     except Exception as e:
         log_error(f"Error in audio processing: {str(e)}")
@@ -131,16 +134,23 @@ if st.button("Start Recording"):
     start_recording()
     log_action("Started recording.")
 if st.button("Stop Recording"):
-    stop_recording()
     transcribed_text = transcribe_audio()
-    handle_audio_processing(transcribed_text, "Recorded Audio")
+    if transcribed_text:
+        handle_audio_processing(transcribed_text, "Recorded Audio")
+    else:
+        st.error("No transcribed text available after recording.")
+        log_error("No transcribed text after recording.")
 
 # Upload Audio for Transcription
 st.subheader("Upload Audio File")
 uploaded_file = st.file_uploader("Choose an audio file", type=["wav", "mp3"])
 if uploaded_file is not None:
     transcribed_text = transcribe_uploaded_audio(uploaded_file)
-    handle_audio_processing(transcribed_text, "Uploaded File")
+    if transcribed_text:
+        handle_audio_processing(transcribed_text, "Uploaded File")
+    else:
+        st.error("No transcribed text available after uploading the file.")
+        log_error("No transcribed text after uploading the file.")
 
 # Optional: Display system logs for debugging
 with st.expander("System Logs"):
