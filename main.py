@@ -20,12 +20,20 @@ os.makedirs(EXTRACTED_TEXTS_DIR, exist_ok=True)
 model = AutoModelForSeq2SeqLM.from_pretrained("./llm_model")
 tokenizer = AutoTokenizer.from_pretrained("./llm_model")
 
+# Load custom CSS
+def load_css():
+    with open("styles/styles.css") as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# Call the function to load CSS
+load_css()
+
 # Function to generate payload using the trained model
 def generate_payload(transcribed_text):
     try:
         if not transcribed_text.strip():
             raise ValueError("Transcribed text is empty or contains only whitespace.")
-
+        
         # Tokenize the input text
         inputs = tokenizer.encode(transcribed_text, return_tensors="pt")
 
@@ -70,7 +78,6 @@ def check_missing_fields(payload):
     missing_fields = [field for field in required_fields if field not in payload]
     return missing_fields
 
-
 # Function to handle transcription and payload generation
 def handle_transcription(payload):
     try:
@@ -96,7 +103,7 @@ def handle_audio_processing(transcribed_text, source):
         if transcribed_text:
             log_action(f"Audio transcribed successfully from {source}")
             st.subheader(f"Transcribed Text from {source}:")
-            transcribed_text = st.text_area("Review/Correct Transcribed Text:", transcribed_text)
+            transcribed_text = st.text_area("Review/Correct Transcribed Text:", transcribed_text, height=200)
 
             suggested_payload = generate_payload(transcribed_text)
             if suggested_payload is None:
@@ -128,7 +135,7 @@ def handle_audio_processing(transcribed_text, source):
 
 # New function to handle manual text input and auto-generate payload
 def handle_manual_text_input():
-    manual_text = st.text_area("Enter Claim Details Manually", "")
+    manual_text = st.text_area("Enter Claim Details Manually", "", height=200)
     if manual_text:
         suggested_payload = generate_payload(manual_text)
         if suggested_payload:
@@ -150,47 +157,52 @@ def handle_manual_text_input():
             st.error("Failed to generate payload from manual input.")
             log_error("Payload generation failed for manual input.")
 
-# Main Streamlit Application
-st.title("Claim Creation through Voice Recognition")
+# Sidebar navigation
+st.sidebar.title("Claim Creation through Voice Recognition")
+st.sidebar.write("Navigate through the options below:")
 
-# Audio recording section
-st.header("Record Voice")
-if st.button("Start Recording"):
-    start_recording()
-    log_action("Started recording.")
-if st.button("Stop Recording"):
-    audio_filename = stop_recording()  # Ensure the audio file is saved
-    if audio_filename:
-        transcribed_text = transcribe_audio(audio_filename)  # Pass the saved file path here
-        if transcribed_text:
-            handle_audio_processing(transcribed_text, "Recorded Audio")
+option = st.sidebar.radio("Select an Option", ("Record Voice", "Upload Audio", "Manual Input", "Logs"))
+
+if option == "Record Voice":
+    st.header("Record Voice")
+    if st.button("Start Recording"):
+        start_recording()
+        log_action("Started recording.")
+    if st.button("Stop Recording"):
+        audio_filename = stop_recording()  # Ensure the audio file is saved
+        if audio_filename:
+            transcribed_text = transcribe_audio(audio_filename)  # Pass the saved file path here
+            if transcribed_text:
+                handle_audio_processing(transcribed_text, "Recorded Audio")
+            else:
+                st.error("No transcribed text available after recording.")
+                log_error("No transcribed text after recording.")
         else:
-            st.error("No transcribed text available after recording.")
-            log_error("No transcribed text after recording.")
-    else:
-        st.error("Failed to save or retrieve the audio file.")
-        log_error("Failed to save or retrieve the audio file.")
+            st.error("Failed to save or retrieve the audio file.")
+            log_error("Failed to save or retrieve the audio file.")
 
-# Upload Audio for Transcription
-st.subheader("Upload Audio File")
-uploaded_file = st.file_uploader("Choose an audio file", type=["wav", "mp3"])
-if uploaded_file is not None:
-    transcribed_text = transcribe_uploaded_audio(uploaded_file)
-    if transcribed_text:
-        handle_audio_processing(transcribed_text, "Uploaded File")
-    else:
-        st.error("No transcribed text available after uploading the file.")
-        log_error("No transcribed text after uploading the file.")
+elif option == "Upload Audio":
+    st.header("Upload Audio File")
+    uploaded_file = st.file_uploader("Choose an audio file", type=["wav", "mp3"])
+    if uploaded_file is not None:
+        transcribed_text = transcribe_uploaded_audio(uploaded_file)
+        if transcribed_text:
+            handle_audio_processing(transcribed_text, "Uploaded File")
+        else:
+            st.error("No transcribed text available after uploading the file.")
+            log_error("No transcribed text after uploading the file.")
 
-# Manual Text Input section for Claim Details
-st.header("Enter Claim Details Manually")
-handle_manual_text_input()
+elif option == "Manual Input":
+    st.header("Enter Claim Details Manually")
+    handle_manual_text_input()
 
-# Optional: Display system logs for debugging
-with st.expander("System Logs"):
-    try:
-        with open("system.log") as log_file:
-            st.text(log_file.read())
-    except FileNotFoundError:
-        st.warning("Log file not found.")
+elif option == "Logs":
+    st.header("Display system logs here...")
+    with st.expander("System Logs"):
+        try:
+            with open("system.log", "r") as log_file:
+                st.text(log_file.read())
+        except FileNotFoundError:
+            st.warning("Log file not found.")
+
 
