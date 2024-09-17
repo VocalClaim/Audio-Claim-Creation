@@ -70,6 +70,7 @@ def check_missing_fields(payload):
     missing_fields = [field for field in required_fields if field not in payload]
     return missing_fields
 
+
 # Function to handle transcription and payload generation
 def handle_transcription(payload):
     try:
@@ -125,6 +126,30 @@ def handle_audio_processing(transcribed_text, source):
         log_error(f"Error in audio processing: {str(e)}")
         st.error(f"Error in audio processing: {str(e)}")
 
+# New function to handle manual text input and auto-generate payload
+def handle_manual_text_input():
+    manual_text = st.text_area("Enter Claim Details Manually", "")
+    if manual_text:
+        suggested_payload = generate_payload(manual_text)
+        if suggested_payload:
+            st.subheader("LLM Suggested Payload from Manual Input")
+            st.json(suggested_payload)
+
+            missing_fields = check_missing_fields(suggested_payload)
+            if missing_fields:
+                st.warning("The following fields are missing:")
+                st.write(missing_fields)
+                log_action(f"Missing fields detected: {missing_fields}")
+
+            if not missing_fields:
+                if st.button("Confirm and Send to Guidewire (Manual Input)"):
+                    transformed_payload = transform_data(suggested_payload)
+                    handle_transcription(transformed_payload)
+                    log_action("Payload confirmed and sent to Guidewire from manual input.")
+        else:
+            st.error("Failed to generate payload from manual input.")
+            log_error("Payload generation failed for manual input.")
+
 # Main Streamlit Application
 st.title("Claim Creation through Voice Recognition")
 
@@ -134,12 +159,17 @@ if st.button("Start Recording"):
     start_recording()
     log_action("Started recording.")
 if st.button("Stop Recording"):
-    transcribed_text = transcribe_audio()
-    if transcribed_text:
-        handle_audio_processing(transcribed_text, "Recorded Audio")
+    audio_filename = stop_recording()  # Ensure the audio file is saved
+    if audio_filename:
+        transcribed_text = transcribe_audio(audio_filename)  # Pass the saved file path here
+        if transcribed_text:
+            handle_audio_processing(transcribed_text, "Recorded Audio")
+        else:
+            st.error("No transcribed text available after recording.")
+            log_error("No transcribed text after recording.")
     else:
-        st.error("No transcribed text available after recording.")
-        log_error("No transcribed text after recording.")
+        st.error("Failed to save or retrieve the audio file.")
+        log_error("Failed to save or retrieve the audio file.")
 
 # Upload Audio for Transcription
 st.subheader("Upload Audio File")
@@ -152,6 +182,10 @@ if uploaded_file is not None:
         st.error("No transcribed text available after uploading the file.")
         log_error("No transcribed text after uploading the file.")
 
+# Manual Text Input section for Claim Details
+st.header("Enter Claim Details Manually")
+handle_manual_text_input()
+
 # Optional: Display system logs for debugging
 with st.expander("System Logs"):
     try:
@@ -159,3 +193,4 @@ with st.expander("System Logs"):
             st.text(log_file.read())
     except FileNotFoundError:
         st.warning("Log file not found.")
+
