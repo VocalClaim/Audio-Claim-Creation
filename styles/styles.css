@@ -1,0 +1,56 @@
+/* General Body Styling */
+body {
+    background-color: #f0f2f6;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Header Styling */
+h1, h2 {
+    color: #2E86C1;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Button Styling */
+.stButton>button {
+    background-color: #2E86C1;
+    color: white;
+    border: none;
+    font-size: 16px;
+    padding: 12px;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+}
+
+.stButton>button:hover {
+    background-color: #1A5276;
+}
+
+/* Sidebar Styling */
+.css-1d391kg {
+    background-color: #2E86C1;
+    color: white;
+}
+
+.css-1d391kg h1 {
+    color: white;
+}
+
+/* Input and Text Area Styling */
+.stTextInput, .stTextArea {
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+/* Success and Error Messages */
+.css-15zsb67 {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.css-1r68k67 {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
